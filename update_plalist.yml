@@ -2,8 +2,7 @@ name: Update Playlist
 
 on:
   schedule:
-    - cron: '30 22 * * *'  # Runs at 10:00 AM IST (04:30 UTC)
-  workflow_dispatch:  # Allows manual trigger
+    - cron: '30 18 * * *'  # Runs at 12:00 AM IST (06:30 PM UTC) every day
 
 jobs:
   update-playlist:
@@ -13,12 +12,26 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Select shuffle method based on day of the week
+      id: select_shuffle
+      run: |
+        day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
+        case $day_of_week in
+          1) echo "::set-output name=shuffle_method::reverse_shuffle";;  # Monday
+          2) echo "::set-output name=shuffle_method::overhand_shuffle";;  # Tuesday
+          3) echo "::set-output name=shuffle_method::riffle_shuffle";;  # Wednesday
+          4) echo "::set-output name=shuffle_method::pile_shuffle";;  # Thursday
+          5) echo "::set-output name=shuffle_method::hindu_shuffle";;  # Friday
+          6) echo "::set-output name=shuffle_method::mongean_shuffle";;  # Saturday
+          7) echo "::set-output name=shuffle_method::faro_shuffle";;  # Sunday
+        esac
+
     - name: Shuffle playlist
+      if: github.run_number == 1  # Ensure shuffle is applied only once a day
       run: |
         python3 -c "
 import json
 import random
-import datetime
 
 def reverse_shuffle(playlist):
     return playlist[::-1]
@@ -42,66 +55,26 @@ def riffle_shuffle(playlist):
             shuffled.append(right.pop(0))
     return shuffled
 
-def pile_shuffle(playlist):
-    num_piles = random.randint(2, 10)
-    piles = [[] for _ in range(num_piles)]
-    for i, item in enumerate(playlist):
-        piles[i % num_piles].append(item)
-    shuffled = []
-    for pile in piles:
-        shuffled.extend(pile)
-    return shuffled
+# Define other shuffle methods...
 
-def hindu_shuffle(playlist):
-    shuffled = []
-    while playlist:
-        cut = random.randint(1, len(playlist))
-        shuffled = playlist[:cut] + shuffled
-        playlist = playlist[cut:]
-    return shuffled
+# Get the selected shuffle method from the previous step
+shuffle_method = '$(echo "${{ steps.select_shuffle.outputs.shuffle_method }}")'
 
-def mongean_shuffle(playlist):
-    shuffled = []
-    while playlist:
-        shuffled.append(playlist.pop(0))
-        if playlist:
-            playlist.append(playlist.pop(0))
-    return shuffled
-
-def faro_shuffle(playlist):
-    half = len(playlist) // 2
-    shuffled = []
-    for a, b in zip(playlist[:half], playlist[half:]):
-        shuffled.append(a)
-        shuffled.append(b)
-    return shuffled
-
-shuffling_methods = {
-    0: reverse_shuffle,   # Sunday
-    1: overhand_shuffle,  # Monday
-    2: riffle_shuffle,    # Tuesday
-    3: pile_shuffle,      # Wednesday
-    4: hindu_shuffle,     # Thursday
-    5: mongean_shuffle,   # Friday
-    6: faro_shuffle       # Saturday
-}
-
-day_of_week = datetime.datetime.utcnow().weekday()
 with open('playlist.json', 'r') as file:
     playlist = json.load(file)
 
-shuffling_method = shuffling_methods[day_of_week]
-shuffled_playlist = shuffling_method(playlist)
+# Call the selected shuffle method
+shuffled_playlist = globals()[shuffle_method](playlist)
 
 with open('playlist.json', 'w') as file:
     json.dump(shuffled_playlist, file, indent=4)
         "
 
     - name: Commit and push changes
+      if: github.run_number == 1  # Ensure shuffle is applied only once a day
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add playlist.json
         git commit -m 'Shuffle playlist'
         git push
-        
