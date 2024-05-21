@@ -110,33 +110,48 @@
     var videoContainer = document.getElementById("videoContainer");
     var overlay = document.getElementById("overlay");
     var centerMessage = document.querySelector(".center-message");
-    var reloadClickCount = 0;
     var playlistUrl = "playlist.json";
     var videoUrls = [];
     var controlsTimeout;
 
-    // Load playlist
-    fetch(playlistUrl)
-        .then(response => response.json())
-        .then(data => {
-            videoUrls = data;
-            playScheduledVideo();
-        })
-        .catch(error => console.error('Error loading playlist:', error));
+    // Function to load playlist and play scheduled video
+    function loadPlaylistAndPlay() {
+        // Load playlist
+        fetch(playlistUrl)
+            .then(response => response.json())
+            .then(data => {
+                videoUrls = data;
+                playScheduledVideo();
+            })
+            .catch(error => console.error('Error loading playlist:', error));
+    }
 
+    // Function to play scheduled video
     function playScheduledVideo() {
         var now = new Date();
         var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-        var currentSlotIndex = Math.floor(indianTime.getHours() * 60 / 24); // Assuming each hour is a slot
+        var currentSlotIndex = Math.floor(indianTime.getHours() * 60 / 5); // Assuming each 5 minutes is a slot
         var currentVideoIndex = currentSlotIndex % videoUrls.length;
-        
+
         // Set the source of the video player to the URL of the scheduled video
         videoPlayer.src = videoUrls[currentVideoIndex];
         videoPlayer.play().catch(error => console.error('Error playing video:', error));
     }
 
+    // Call the function to load playlist and play scheduled video when the page is visited or refreshed
+    loadPlaylistAndPlay();
+
+    // Function to reload playlist and play scheduled video every 5 minutes
+    setInterval(loadPlaylistAndPlay, 5 * 60 * 1000); // 5 minutes in milliseconds
+
+    // Event listener to play the next video when the current one ends
     videoPlayer.addEventListener("ended", function () {
         playScheduledVideo();
+    });
+
+    // Function to check schedule and play appropriate video when the page is visited
+    document.addEventListener("DOMContentLoaded", function() {
+        loadPlaylistAndPlay();
     });
 
     playPauseBtn.addEventListener("click", togglePlayPause);
