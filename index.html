@@ -103,96 +103,96 @@
     </div>
 
     <script>
-        var videoPlayer = document.getElementById("videoPlayer");
-        var playPauseBtn = document.getElementById("playPauseBtn");
-        var fullScreenBtn = document.getElementById("fullScreenBtn");
-        var reloadBtn = document.getElementById("reloadBtn");
-        var videoContainer = document.getElementById("videoContainer");
-        var overlay = document.getElementById("overlay");
-        var centerMessage = document.querySelector(".center-message");
-        var reloadClickCount = 0;
-        var playlistUrl = "playlist.json";
-        var videoUrls = [];
-        var controlsTimeout;
+    var videoPlayer = document.getElementById("videoPlayer");
+    var playPauseBtn = document.getElementById("playPauseBtn");
+    var fullScreenBtn = document.getElementById("fullScreenBtn");
+    var reloadBtn = document.getElementById("reloadBtn");
+    var videoContainer = document.getElementById("videoContainer");
+    var overlay = document.getElementById("overlay");
+    var centerMessage = document.querySelector(".center-message");
+    var reloadClickCount = 0;
+    var playlistUrl = "playlist.json";
+    var videoUrls = [];
+    var controlsTimeout;
 
-        // Load playlist
-        fetch(playlistUrl)
-            .then(response => response.json())
-            .then(data => {
-                videoUrls = data;
-                playScheduledVideo();
-            })
-            .catch(error => console.error('Error loading playlist:', error));
-
-        function playScheduledVideo() {
-            var now = new Date();
-            var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-            var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
-            var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / videoUrls.length));
-            var currentVideoIndex = currentSlotIndex % videoUrls.length;
-            
-            videoPlayer.src = videoUrls[currentVideoIndex];
-            videoPlayer.play().catch(error => console.error('Error playing video:', error));
-        }
-
-        videoPlayer.addEventListener("ended", function () {
+    // Load playlist
+    fetch(playlistUrl)
+        .then(response => response.json())
+        .then(data => {
+            videoUrls = data;
             playScheduledVideo();
-        });
+        })
+        .catch(error => console.error('Error loading playlist:', error));
 
-        playPauseBtn.addEventListener("click", togglePlayPause);
-        fullScreenBtn.addEventListener("click", toggleFullscreen);
-        reloadBtn.addEventListener("click", handleReload);
-        videoContainer.addEventListener("mousemove", showControls);
-        videoContainer.addEventListener("touchstart", showControls);
-        videoContainer.addEventListener("click", showControls);
+    function playScheduledVideo() {
+        var now = new Date();
+        var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+        var currentSlotIndex = Math.floor(indianTime.getHours() * 60 / 24); // Assuming each hour is a slot
+        var currentVideoIndex = currentSlotIndex % videoUrls.length;
+        
+        // Set the source of the video player to the URL of the scheduled video
+        videoPlayer.src = videoUrls[currentVideoIndex];
+        videoPlayer.play().catch(error => console.error('Error playing video:', error));
+    }
 
-        function togglePlayPause() {
-            if (videoPlayer.paused || videoPlayer.ended) {
-                videoPlayer.play();
-                playPauseBtn.innerHTML = "&#10074;&#10074;";
-            } else {
-                videoPlayer.pause();
-                playPauseBtn.innerHTML = "&#9658;";
-            }
+    videoPlayer.addEventListener("ended", function () {
+        playScheduledVideo();
+    });
+
+    playPauseBtn.addEventListener("click", togglePlayPause);
+    fullScreenBtn.addEventListener("click", toggleFullscreen);
+    reloadBtn.addEventListener("click", handleReload);
+    videoContainer.addEventListener("mousemove", showControls);
+    videoContainer.addEventListener("touchstart", showControls);
+    videoContainer.addEventListener("click", showControls);
+
+    function togglePlayPause() {
+        if (videoPlayer.paused || videoPlayer.ended) {
+            videoPlayer.play();
+            playPauseBtn.innerHTML = "&#10074;&#10074;";
+        } else {
+            videoPlayer.pause();
+            playPauseBtn.innerHTML = "&#9658;";
         }
+    }
 
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                videoContainer.requestFullscreen().catch(err => console.log(`Error enabling full-screen: ${err.message}`));
-            } else {
-                document.exitFullscreen();
-            }
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            videoContainer.requestFullscreen().catch(err => console.log(`Error enabling full-screen: ${err.message}`));
+        } else {
+            document.exitFullscreen();
         }
+    }
 
-        function handleReload() {
-            reloadClickCount++;
-            if (reloadClickCount === 1) {
-                centerMessage.innerText = "If You Refresh this site you catch last five minutes live content again to watch";
-            } else if (reloadClickCount === 2) {
-                centerMessage.innerText = "Adjust your Mobile / Device Lock Screen / Lock Orientations / Rotate Screen / options Enable / Disable you can enjoy the TV in Full screen View!";
-                reloadClickCount = 0;
-            }
-            centerMessage.style.display = "block";
-            setTimeout(() => {
-                centerMessage.style.display = "none";
-            }, 6000);
+    function handleReload() {
+        reloadClickCount++;
+        if (reloadClickCount === 1) {
+            centerMessage.innerText = "If You Refresh this site you catch last five minutes live content again to watch";
+        } else if (reloadClickCount === 2) {
+            centerMessage.innerText = "Adjust your Mobile / Device Lock Screen / Lock Orientations / Rotate Screen / options Enable / Disable you can enjoy the TV in Full screen View!";
+            reloadClickCount = 0;
         }
+        centerMessage.style.display = "block";
+        setTimeout(() => {
+            centerMessage.style.display = "none";
+        }, 6000);
+    }
 
-        function showControls() {
-            overlay.style.opacity = 1;
-            clearTimeout(controlsTimeout);
-            controlsTimeout = setTimeout(() => {
-                overlay.style.opacity = 0;
-            }, 10000);
-        }
+    function showControls() {
+        overlay.style.opacity = 1;
+        clearTimeout(controlsTimeout);
+        controlsTimeout = setTimeout(() => {
+            overlay.style.opacity = 0;
+        }, 10000);
+    }
 
-        hideControlsAfterDelay();
+    hideControlsAfterDelay();
 
-        function hideControlsAfterDelay() {
-            controlsTimeout = setTimeout(() => {
-                overlay.style.opacity = 0;
-            }, 10000);
-        }
-    </script>
+    function hideControlsAfterDelay() {
+        controlsTimeout = setTimeout(() => {
+            overlay.style.opacity = 0;
+        }, 10000);
+    }
+</script>
 </body>
 </html>
