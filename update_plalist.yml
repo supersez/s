@@ -2,7 +2,8 @@ name: Update Playlist
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Runs at 6:00 AM UTC which is 12:00 PM India Standard Time
+    - cron: '30 18 * * *'  # Runs at 12:00 AM IST (18:30 UTC)
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   update-playlist:
@@ -17,14 +18,83 @@ jobs:
         python3 -c "
 import json
 import random
+import datetime
 
+def reverse_shuffle(playlist):
+    return playlist[::-1]
+
+def overhand_shuffle(playlist):
+    shuffled = []
+    while playlist:
+        cut = random.randint(1, len(playlist))
+        shuffled = playlist[:cut] + shuffled
+        playlist = playlist[cut:]
+    return shuffled
+
+def riffle_shuffle(playlist):
+    cut = len(playlist) // 2
+    left, right = playlist[:cut], playlist[cut:]
+    shuffled = []
+    while left or right:
+        if left:
+            shuffled.append(left.pop(0))
+        if right:
+            shuffled.append(right.pop(0))
+    return shuffled
+
+def pile_shuffle(playlist):
+    num_piles = random.randint(2, 10)
+    piles = [[] for _ in range(num_piles)]
+    for i, item in enumerate(playlist):
+        piles[i % num_piles].append(item)
+    shuffled = []
+    for pile in piles:
+        shuffled.extend(pile)
+    return shuffled
+
+def hindu_shuffle(playlist):
+    shuffled = []
+    while playlist:
+        cut = random.randint(1, len(playlist))
+        shuffled = playlist[:cut] + shuffled
+        playlist = playlist[cut:]
+    return shuffled
+
+def mongean_shuffle(playlist):
+    shuffled = []
+    while playlist:
+        shuffled.append(playlist.pop(0))
+        if playlist:
+            playlist.append(playlist.pop(0))
+    return shuffled
+
+def faro_shuffle(playlist):
+    half = len(playlist) // 2
+    shuffled = []
+    for a, b in zip(playlist[:half], playlist[half:]):
+        shuffled.append(a)
+        shuffled.append(b)
+    return shuffled
+
+shuffling_methods = {
+    0: reverse_shuffle,   # Sunday
+    1: overhand_shuffle,  # Monday
+    2: riffle_shuffle,    # Tuesday
+    3: pile_shuffle,      # Wednesday
+    4: hindu_shuffle,     # Thursday
+    5: mongean_shuffle,   # Friday
+    6: faro_shuffle       # Saturday
+}
+
+day_of_week = datetime.datetime.utcnow().weekday()
 with open('playlist.json', 'r') as file:
     playlist = json.load(file)
 
-random.shuffle(playlist)
+shuffling_method = shuffling_methods[day_of_week]
+shuffled_playlist = shuffling_method(playlist)
 
 with open('playlist.json', 'w') as file:
-    json.dump(playlist, file, indent=4)
+    json.dump(shuffled_playlist, file, indent=4)
         "
 
     - name: Commit and push changes
@@ -34,3 +104,4 @@ with open('playlist.json', 'w') as file:
         git add playlist.json
         git commit -m 'Shuffle playlist'
         git push
+        
