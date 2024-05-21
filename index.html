@@ -121,20 +121,17 @@
             .then(response => response.json())
             .then(data => {
                 videoUrls = data;
-                setInitialVideo();
                 playScheduledVideo();
             })
             .catch(error => console.error('Error loading playlist:', error));
 
-        function setInitialVideo() {
+        function playScheduledVideo() {
             var now = new Date();
             var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
             var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
-            var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / 288));
+            var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / videoUrls.length));
             currentVideoIndex = currentSlotIndex % videoUrls.length;
-        }
-
-        function playScheduledVideo() {
+            
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
         }
@@ -183,8 +180,7 @@
             }, 6000);
         }
 
-        function showControls()
-{
+        function showControls() {
             overlay.style.opacity = 1;
             clearTimeout(controlsTimeout);
             controlsTimeout = setTimeout(() => {
