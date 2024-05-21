@@ -113,7 +113,6 @@
         var reloadClickCount = 0;
         var playlistUrl = "playlist.json";
         var videoUrls = [];
-        var currentVideoIndex = 0;
         var controlsTimeout;
 
         // Load playlist
@@ -130,14 +129,13 @@
             var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
             var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
             var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / videoUrls.length));
-            currentVideoIndex = currentSlotIndex % videoUrls.length;
+            var currentVideoIndex = currentSlotIndex % videoUrls.length;
             
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
         }
 
         videoPlayer.addEventListener("ended", function () {
-            currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
             playScheduledVideo();
         });
 
