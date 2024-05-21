@@ -126,50 +126,6 @@
             })
             .catch(error => console.error('Error loading playlist:', error));
 
-        // Create schedule for each day of the week
-        function createSchedule(dayOfWeek) {
-            var totalVideos = videoUrls.length;
-            var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
-            var schedule = [];
-
-            // Generate schedule based on the day of the week
-            for (var i = 0; i < slotsPerDay; i++) {
-                schedule.push((i + dayOfWeek) % totalVideos);
-            }
-
-            // Apply custom order based on the day of the week
-            switch (dayOfWeek) {
-                case 0: // Sunday
-                    schedule.reverse();
-                    break;
-                case 1: // Monday
-                    schedule.sort();
-                    break;
-                case 2: // Tuesday
-                    schedule = customOrder(schedule, [totalVideos / 2, 'reverse']);
-                    break;
-                case 3: // Wednesday
-                    schedule = customOrder(schedule, [1, 3, 5, 'sort'], [2, 4, 6, 'reverse']);
-                    break;
-                case 4: // Thursday
-                    schedule = customOrder(schedule, [(i - 1 + 3) % totalVideos]);
-                    break;
-                case 5: // Friday
-                    schedule = customOrder(schedule, [totalVideos / 4, 'sort'], [totalVideos / 2, 'reverse']);
-                    break;
-                case 6: // Saturday
-                    schedule = customOrder(schedule, [1, 3, 5, 'sort'], [2, 4, 6, 'reverse']);
-                    break;
-            }
-
-            return schedule;
-        }
-
-        function customOrder(schedule, ...args) {
-            // Custom order logic here
-            return schedule;
-        }
-
         function setInitialVideo() {
             var now = new Date();
             var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
