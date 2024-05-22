@@ -18,13 +18,10 @@ jobs:
         with:
           node-version: '14'
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
       - name: Select shuffle method based on day of the week
         id: select_shuffle
         run: |
-          day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
+          day_of_week=$(TZ="Asia/Kolkata" date +'%u')  # Get the day of the week in India time (1 to 7, Monday to Sunday)
           case $day_of_week in
             1) echo "shuffle_method=reverseShuffle" >> $GITHUB_ENV;;  # Monday
             2) echo "shuffle_method=overhandShuffle" >> $GITHUB_ENV;;  # Tuesday
