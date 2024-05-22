@@ -36,90 +36,90 @@ jobs:
 
       - name: Shuffle playlist
         run: |
-          node -e "
-const fs = require('fs');
-const path = './playlist.json';
+          node -e '
+const fs = require("fs");
+const path = "./playlist.json";
 const shuffleMethod = process.env.shuffle_method;
 
 function reverseShuffle(playlist) {
-    return playlist.reverse();
+  return playlist.reverse();
 }
 
 function overhandShuffle(playlist) {
-    let shuffled = [];
-    while (playlist.length) {
-        const cut = Math.floor(Math.random() * playlist.length) + 1;
-        shuffled = [...playlist.splice(0, cut), ...shuffled];
-    }
-    return shuffled;
+  let shuffled = [];
+  while (playlist.length) {
+    const cut = Math.floor(Math.random() * playlist.length) + 1;
+    shuffled = [...playlist.splice(0, cut), ...shuffled];
+  }
+  return shuffled;
 }
 
 function riffleShuffle(playlist) {
-    const cut = Math.floor(playlist.length / 2);
-    const left = playlist.splice(0, cut);
-    const right = playlist;
-    const shuffled = [];
-    while (left.length || right.length) {
-        if (left.length) shuffled.push(left.shift());
-        if (right.length) shuffled.push(right.shift());
-    }
-    return shuffled;
+  const cut = Math.floor(playlist.length / 2);
+  const left = playlist.splice(0, cut);
+  const right = playlist;
+  const shuffled = [];
+  while (left.length || right.length) {
+    if (left.length) shuffled.push(left.shift());
+    if (right.length) shuffled.push(right.shift());
+  }
+  return shuffled;
 }
 
 function pileShuffle(playlist) {
-    const piles = Array.from({ length: Math.floor(Math.random() * 9) + 2 }, () => []);
-    while (playlist.length) {
-        for (const pile of piles) {
-            if (!playlist.length) break;
-            pile.push(playlist.shift());
-        }
+  const piles = Array.from({ length: Math.floor(Math.random() * 9) + 2 }, () => []);
+  while (playlist.length) {
+    for (const pile of piles) {
+      if (!playlist.length) break;
+      pile.push(playlist.shift());
     }
-    return piles.flat();
+  }
+  return piles.flat();
 }
 
 function hinduShuffle(playlist) {
-    const shuffled = [];
-    while (playlist.length) {
-        const randIndex = Math.floor(Math.random() * playlist.length);
-        shuffled.push(playlist.splice(randIndex, 1)[0]);
-    }
-    return shuffled;
+  const shuffled = [];
+  while (playlist.length) {
+    const randIndex = Math.floor(Math.random() * playlist.length);
+    shuffled.push(playlist.splice(randIndex, 1)[0]);
+  }
+  return shuffled;
 }
 
 function mongeanShuffle(playlist) {
-    const shuffled = [];
-    playlist.forEach((item, index) => {
-        index % 2 === 0 ? shuffled.push(item) : shuffled.unshift(item);
-    });
-    return shuffled;
+  const shuffled = [];
+  playlist.forEach((item, index) => {
+    index % 2 === 0 ? shuffled.push(item) : shuffled.unshift(item);
+  });
+  return shuffled;
 }
 
 function faroShuffle(playlist) {
-    const half = Math.floor(playlist.length / 2);
-    const left = playlist.slice(0, half);
-    const right = playlist.slice(half);
-    const shuffled = [];
-    while (left.length || right.length) {
-        if (left.length) shuffled.push(left.shift());
-        if (right.length) shuffled.push(right.shift());
-    }
-    return shuffled;
+  const half = Math.floor(playlist.length / 2);
+  const left = playlist.slice(0, half);
+  const right = playlist.slice(half);
+  const shuffled = [];
+  while (left.length || right.length) {
+    if (left.length) shuffled.push(left.shift());
+    if (right.length) shuffled.push(right.shift());
+  }
+  return shuffled;
 }
 
 const shuffleMethods = {
-    reverseShuffle,
-    overhandShuffle,
-    riffleShuffle,
-    pileShuffle,
-    hinduShuffle,
-    mongeanShuffle,
-    faroShuffle,
+  reverseShuffle,
+  overhandShuffle,
+  riffleShuffle,
+  pileShuffle,
+  hinduShuffle,
+  mongeanShuffle,
+  faroShuffle,
 };
 
-const playlist = JSON.parse(fs.readFileSync(path, 'utf-8'));
+const playlist = JSON.parse(fs.readFileSync(path, "utf-8"));
 const shuffledPlaylist = shuffleMethods[shuffleMethod](playlist);
 fs.writeFileSync(path, JSON.stringify(shuffledPlaylist, null, 4));
-"
+          '
 
       - name: Commit and push changes
         run: |
