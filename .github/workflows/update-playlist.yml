@@ -12,26 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Select shuffle method based on day of the week
-        id: select_shuffle
-        run: |
-          day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
-          case $day_of_week in
-            1) echo "shuffle_method=reverse_shuffle" >> $GITHUB_ENV;;  # Monday
-            2) echo "shuffle_method=overhand_shuffle" >> $GITHUB_ENV;;  # Tuesday
-            3) echo "shuffle_method=riffle_shuffle" >> $GITHUB_ENV;;  # Wednesday
-            4) echo "shuffle_method=pile_shuffle" >> $GITHUB_ENV;;  # Thursday
-            5) echo "shuffle_method=hindu_shuffle" >> $GITHUB_ENV;;  # Friday
-            6) echo "shuffle_method=mongean_shuffle" >> $GITHUB_ENV;;  # Saturday
-            7) echo "shuffle_method=faro_shuffle" >> $GITHUB_ENV;;  # Sunday
-          esac
+    - name: Select shuffle method based on day of the week
+      id: select_shuffle
+      run: |
+        day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
+        case $day_of_week in
+          1) echo "reverse_shuffle" >> $GITHUB_ENV;;  # Monday
+          2) echo "overhand_shuffle" >> $GITHUB_ENV;;  # Tuesday
+          3) echo "riffle_shuffle" >> $GITHUB_ENV;;  # Wednesday
+          4) echo "pile_shuffle" >> $GITHUB_ENV;;  # Thursday
+          5) echo "hindu_shuffle" >> $GITHUB_ENV;;  # Friday
+          6) echo "mongean_shuffle" >> $GITHUB_ENV;;  # Saturday
+          7) echo "faro_shuffle" >> $GITHUB_ENV;;  # Sunday
+        esac
 
-      - name: Shuffle playlist
-        run: |
-          python3 -c "
+    - name: Shuffle playlist
+      run: |
+        python3 -c "
 import json
 import random
 import os
@@ -39,44 +39,7 @@ import os
 def reverse_shuffle(playlist):
     return playlist[::-1]
 
-def overhand_shuffle(playlist):
-    shuffled = []
-    while playlist:
-        cut = random.randint(1, len(playlist))
-        shuffled = playlist[:cut] + shuffled
-        playlist = playlist[cut:]
-    return shuffled
-
-def riffle_shuffle(playlist):
-    cut = len(playlist) // 2
-    left, right = playlist[:cut], playlist[cut:]
-    shuffled = []
-    while left or right:
-        if left:
-            shuffled.append(left.pop(0))
-        if right:
-            shuffled.append(right.pop(0))
-    return shuffled
-
-def pile_shuffle(playlist):
-    piles = [[] for _ in range(random.randint(2, 10))]
-    while playlist:
-        for pile in piles:
-            if not playlist:
-                break
-            pile.append(playlist.pop(0))
-    shuffled = [item for pile in piles for item in pile]
-    return shuffled
-
-def hindu_shuffle(playlist):
-    return [playlist.pop(random.randint(0, len(playlist)-1)) for _ in range(len(playlist))]
-
-def mongean_shuffle(playlist):
-    return [playlist[i] for i in range(len(playlist)) if i % 2 == 1] + [playlist[i] for i in range(len(playlist)) if i % 2 == 0]
-
-def faro_shuffle(playlist):
-    half = len(playlist) // 2
-    return [val for pair in zip(playlist[:half], playlist[half:]) for val in pair]
+# Define other shuffle methods here...
 
 # Get the selected shuffle method from the environment variable
 shuffle_method = os.getenv('shuffle_method')
@@ -89,20 +52,12 @@ shuffled_playlist = globals()[shuffle_method](playlist)
 
 with open('playlist.json', 'w') as file:
     json.dump(shuffled_playlist, file, indent=4)
-        "
+"
 
-      - name: Set up Git
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'supermanraofficial@gmail.com'
-          git config --global credential.helper store
-          git config --global http.extraheader "AUTHORIZATION: basic ${{ secrets.GITHUB_TOKEN }}"
-      
-      - name: Commit changes
-        run: |
-          git add playlist.json
-          git commit -m "Shuffle playlist"
-      
-      - name: Push changes
-        run: |
-          git push
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'supersez'
+        git config --global user.email 'supermanraofficial@gmail.com'
+        git add playlist.json
+        git commit -m 'Shuffle playlist'
+        git push
