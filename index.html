@@ -111,38 +111,35 @@
         var overlay = document.getElementById("overlay");
         var centerMessage = document.querySelector(".center-message");
         var reloadClickCount = 0;
+        // Load the video URLs from the playlist.json file
         var playlistUrl = "playlist.json";
         var videoUrls = [];
-        var currentVideoIndex = 0;
-        var controlsTimeout;
 
-        // Load playlist
         fetch(playlistUrl)
             .then(response => response.json())
             .then(data => {
                 videoUrls = data;
-                setInitialVideo();
                 playScheduledVideo();
             })
             .catch(error => console.error('Error loading playlist:', error));
 
-        function setInitialVideo() {
+        function playScheduledVideo() {
             var now = new Date();
             var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
             var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
             var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / 288));
-            currentVideoIndex = currentSlotIndex % videoUrls.length;
-        }
+            var currentVideoIndex = currentSlotIndex % videoUrls.length;
 
-        function playScheduledVideo() {
+            var videoPlayer = document.getElementById("videoPlayer");
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
-        }
 
-        videoPlayer.addEventListener("ended", function () {
-            currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
-            playScheduledVideo();
-        });
+            videoPlayer.addEventListener("ended", function () {
+                currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
+                videoPlayer.src = videoUrls[currentVideoIndex];
+                videoPlayer.play().catch(error => console.error('Error playing video:', error));
+            });
+        }
 
         playPauseBtn.addEventListener("click", togglePlayPause);
         fullScreenBtn.addEventListener("click", toggleFullscreen);
@@ -200,4 +197,5 @@
         }
     </script>
 </body>
-</html>
+    </html>
+            
