@@ -99,7 +99,7 @@
                 </button>
             </div>
         </div>
-        <div class="center-message"></div>
+        <div class="center-message" id="centerMessage"></div>
     </div>
 
     <script>
@@ -109,8 +109,10 @@
         var reloadBtn = document.getElementById("reloadBtn");
         var videoContainer = document.getElementById("videoContainer");
         var overlay = document.getElementById("overlay");
-        var centerMessage = document.querySelector(".center-message");
+        var centerMessage = document.getElementById("centerMessage");
         var reloadClickCount = 0;
+        var controlsTimeout;
+
         // Load the video URLs from the playlist.json file
         var playlistUrl = "playlist.json";
         var videoUrls = [];
@@ -130,7 +132,6 @@
             var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / 288));
             var currentVideoIndex = currentSlotIndex % videoUrls.length;
 
-            var videoPlayer = document.getElementById("videoPlayer");
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
 
@@ -188,14 +189,13 @@
             }, 10000);
         }
 
-        hideControlsAfterDelay();
-
         function hideControlsAfterDelay() {
             controlsTimeout = setTimeout(() => {
                 overlay.style.opacity = 0;
             }, 10000);
         }
+
+        hideControlsAfterDelay();
     </script>
 </body>
-    </html>
-            
+</html>
