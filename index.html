@@ -120,8 +120,12 @@
         fetch(playlistUrl)
             .then(response => response.json())
             .then(data => {
-                videoUrls = data;
-                playScheduledVideo();
+                if (Array.isArray(data)) {
+                    videoUrls = data;
+                    playScheduledVideo();
+                } else {
+                    console.error('Invalid playlist format: Expected an array of URLs');
+                }
             })
             .catch(error => console.error('Error loading playlist:', error));
 
