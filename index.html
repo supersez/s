@@ -132,31 +132,31 @@
             // Define different orders of slots for each day of the week
             var orders = [
                 // Sunday
-                Array.from({ length: 288 }, (_, i) => (i + 1) % 288 + 1),
+                [...Array(36).keys()].map(i => 288 - 10 * i % 288),
                 // Monday
-                Array.from({ length: 288 }, (_, i) => (i * 10) % 288 + 1),
+                [...Array(288).keys()].map(i => (i * 10) % 288 + 1),
                 // Tuesday
-                Array.from({ length: 288 }, (_, i) => (i * 6) % 288 + 1),
+                [...Array(288).keys()].map(i => (i * 6) % 288 + 1),
                 // Wednesday
-                Array.from({ length: 288 }, (_, i) => 288 - i),
+                [...Array(288).keys()].reverse().map(i => 288 - i),
                 // Thursday
-                Array.from({ length: 288 }, (_, i) => i + 1),
+                [...Array(288).keys()].map(i => i + 1),
                 // Friday
-                Array.from({ length: 288 }, (_, i) => (i + 1) % 288 + 1),
+                [...Array(36).keys()].map(i => 288 - 10 * i % 288),
                 // Saturday
-                Array.from({ length: 288 }, (_, i) => (i * 6) % 288 + 1)
+                [...Array(288).keys()].map(i => (i * 6) % 288 + 1)
             ];
 
             var currentOrder = orders[dayOfWeek];
             var currentSlotIndex = calculateSlotIndex(now, currentOrder.length);
-
-            var currentVideoIndex = currentOrder[currentSlotIndex % currentOrder.length];
+            var currentVideoIndex = currentOrder[currentSlotIndex % currentOrder.length] - 1; // Adjust index
 
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
 
             videoPlayer.addEventListener("ended", function () {
-                currentVideoIndex = currentOrder[(currentSlotIndex + % currentOrder.length];
+                currentSlotIndex = (currentSlotIndex + 1) % currentOrder.length;
+                currentVideoIndex = currentOrder[currentSlotIndex] - 1; // Adjust index
                 videoPlayer.src = videoUrls[currentVideoIndex];
                 videoPlayer.play().catch(error => console.error('Error playing video:', error));
             });
@@ -224,4 +224,3 @@
     </script>
 </body>
 </html>
-
