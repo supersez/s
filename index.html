@@ -156,7 +156,7 @@
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
 
             videoPlayer.addEventListener("ended", function () {
-                currentVideoIndex = currentOrder[(currentSlotIndex +% currentOrder.length];
+                currentVideoIndex = currentOrder[(currentSlotIndex + % currentOrder.length];
                 videoPlayer.src = videoUrls[currentVideoIndex];
                 videoPlayer.play().catch(error => console.error('Error playing video:', error));
             });
@@ -224,3 +224,4 @@
     </script>
 </body>
 </html>
+
