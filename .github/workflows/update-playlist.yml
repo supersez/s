@@ -12,26 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Select shuffle method based on day of the week
-      id: select_shuffle
-      run: |
-        day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
-        case $day_of_week in
-          1) echo "shuffle_method=reverse_shuffle" >> $GITHUB_ENV;;  # Monday
-          2) echo "shuffle_method=overhand_shuffle" >> $GITHUB_ENV;;  # Tuesday
-          3) echo "shuffle_method=riffle_shuffle" >> $GITHUB_ENV;;  # Wednesday
-          4) echo "shuffle_method=pile_shuffle" >> $GITHUB_ENV;;  # Thursday
-          5) echo "shuffle_method=hindu_shuffle" >> $GITHUB_ENV;;  # Friday
-          6) echo "shuffle_method=mongean_shuffle" >> $GITHUB_ENV;;  # Saturday
-          7) echo "shuffle_method=faro_shuffle" >> $GITHUB_ENV;;  # Sunday
-        esac
+      - name: Select shuffle method based on day of the week
+        id: select_shuffle
+        run: |
+          day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
+          case $day_of_week in
+            1) echo "shuffle_method=reverse_shuffle" >> $GITHUB_ENV;;  # Monday
+            2) echo "shuffle_method=overhand_shuffle" >> $GITHUB_ENV;;  # Tuesday
+            3) echo "shuffle_method=riffle_shuffle" >> $GITHUB_ENV;;  # Wednesday
+            4) echo "shuffle_method=pile_shuffle" >> $GITHUB_ENV;;  # Thursday
+            5) echo "shuffle_method=hindu_shuffle" >> $GITHUB_ENV;;  # Friday
+            6) echo "shuffle_method=mongean_shuffle" >> $GITHUB_ENV;;  # Saturday
+            7) echo "shuffle_method=faro_shuffle" >> $GITHUB_ENV;;  # Sunday
+          esac
 
-    - name: Shuffle playlist
-      run: |
-        python3 -c "
+      - name: Shuffle playlist
+        run: |
+          python3 -c "
 import json
 import random
 import os
@@ -90,13 +90,18 @@ shuffled_playlist = globals()[shuffle_method](playlist)
 with open('playlist.json', 'w') as file:
     json.dump(shuffled_playlist, file, indent=4)
         "
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+
+      - name: Commit changes
+        run: |
+          git add playlist.json
+          git commit -m "Shuffle playlist"
       
-    - name: Commit and push changes
-      run: |
-        git config --global user.name 'supersez'
-        git config --global user.email 'supermanraofficial@gmail.com'
-        git add playlist.json
-        git commit -m 'Shuffle playlist'
-        git push https://supersez:${{ secrets.TOKEN }}@github.com/supersez/s.git
-      env:
-        TOKEN: ${{ secrets.TOKEN }}
+      - name: Push changes
+        run: |
+          gh auth login --with-token <<< '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'
+          git push
