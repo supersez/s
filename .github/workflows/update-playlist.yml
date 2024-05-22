@@ -94,8 +94,10 @@ with open('playlist.json', 'w') as file:
       - name: Set up Git
         run: |
           git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-
+          git config --global user.email 'supermanraofficial@gmail.com'
+          git config --global credential.helper store
+          git config --global http.extraheader "AUTHORIZATION: basic ${{ secrets.GITHUB_TOKEN }}"
+      
       - name: Commit changes
         run: |
           git add playlist.json
@@ -103,5 +105,4 @@ with open('playlist.json', 'w') as file:
       
       - name: Push changes
         run: |
-          gh auth login --with-token <<< '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'
           git push
