@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Install Node.js
         uses: actions/setup-node@v2
@@ -126,3 +128,5 @@ fs.writeFileSync(path, JSON.stringify(shuffledPlaylist, null, 4));
           git add playlist.json
           git commit -m 'Shuffle playlist'
           git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
