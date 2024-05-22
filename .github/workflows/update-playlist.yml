@@ -13,52 +13,114 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Select shuffle method based on day of the week
         id: select_shuffle
         run: |
           day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
           case $day_of_week in
-            1) echo "shuffle_method=reverse_shuffle" >> $GITHUB_ENV;;  # Monday
-            2) echo "shuffle_method=overhand_shuffle" >> $GITHUB_ENV;;  # Tuesday
-            3) echo "shuffle_method=riffle_shuffle" >> $GITHUB_ENV;;  # Wednesday
-            4) echo "shuffle_method=pile_shuffle" >> $GITHUB_ENV;;  # Thursday
-            5) echo "shuffle_method=hindu_shuffle" >> $GITHUB_ENV;;  # Friday
-            6) echo "shuffle_method=mongean_shuffle" >> $GITHUB_ENV;;  # Saturday
-            7) echo "shuffle_method=faro_shuffle" >> $GITHUB_ENV;;  # Sunday
+            1) echo "shuffle_method=reverseShuffle" >> $GITHUB_ENV;;  # Monday
+            2) echo "shuffle_method=overhandShuffle" >> $GITHUB_ENV;;  # Tuesday
+            3) echo "shuffle_method=riffleShuffle" >> $GITHUB_ENV;;  # Wednesday
+            4) echo "shuffle_method=pileShuffle" >> $GITHUB_ENV;;  # Thursday
+            5) echo "shuffle_method=hinduShuffle" >> $GITHUB_ENV;;  # Friday
+            6) echo "shuffle_method=mongeanShuffle" >> $GITHUB_ENV;;  # Saturday
+            7) echo "shuffle_method=faroShuffle" >> $GITHUB_ENV;;  # Sunday
           esac
 
       - name: Shuffle playlist
         run: |
-          # Read the playlist from the file
-          playlist=$(<playlist.json)
-          
-          # Shuffle the playlist based on the selected method
-          case $shuffle_method in
-            reverse_shuffle)
-              shuffled_playlist=$(echo "$playlist" | jq -r 'reverse | @json')
-              ;;
-            overhand_shuffle)
-              shuffled_playlist=$(echo "$playlist" | jq -r 'shuffle | @json')
-              ;;
-            riffle_shuffle)
-              shuffled_playlist=$(echo "$playlist" | jq -r 'shuffle | @json')
-              ;;
-            pile_shuffle)
-              shuffled_playlist=$(echo "$playlist" | jq -r 'shuffle | @json')
-              ;;
-            hindu_shuffle)
-              shuffled_playlist=$(echo "$playlist" | jq -r 'shuffle | @json')
-              ;;
-            mongean_shuffle)
-              shuffled_playlist=$(echo "$playlist" | jq -r 'shuffle | @json')
-              ;;
-            faro_shuffle)
-              shuffled_playlist=$(echo "$playlist" | jq -r 'shuffle | @json')
-              ;;
-          esac
-          
-          # Write the shuffled playlist back to the file
-          echo "$shuffled_playlist" > playlist.json
+          node -e "
+const fs = require('fs');
+const path = './playlist.json';
+const shuffleMethod = process.env.shuffle_method;
+
+function reverseShuffle(playlist) {
+    return playlist.reverse();
+}
+
+function overhandShuffle(playlist) {
+    let shuffled = [];
+    while (playlist.length) {
+        const cut = Math.floor(Math.random() * playlist.length) + 1;
+        shuffled = [...playlist.splice(0, cut), ...shuffled];
+    }
+    return shuffled;
+}
+
+function riffleShuffle(playlist) {
+    const cut = Math.floor(playlist.length / 2);
+    const left = playlist.splice(0, cut);
+    const right = playlist;
+    const shuffled = [];
+    while (left.length || right.length) {
+        if (left.length) shuffled.push(left.shift());
+        if (right.length) shuffled.push(right.shift());
+    }
+    return shuffled;
+}
+
+function pileShuffle(playlist) {
+    const piles = Array.from({ length: Math.floor(Math.random() * 9) + 2 }, () => []);
+    while (playlist.length) {
+        for (const pile of piles) {
+            if (!playlist.length) break;
+            pile.push(playlist.shift());
+        }
+    }
+    return piles.flat();
+}
+
+function hinduShuffle(playlist) {
+    const shuffled = [];
+    while (playlist.length) {
+        const randIndex = Math.floor(Math.random() * playlist.length);
+        shuffled.push(playlist.splice(randIndex, 1)[0]);
+    }
+    return shuffled;
+}
+
+function mongeanShuffle(playlist) {
+    const shuffled = [];
+    playlist.forEach((item, index) => {
+        index % 2 === 0 ? shuffled.push(item) : shuffled.unshift(item);
+    });
+    return shuffled;
+}
+
+function faroShuffle(playlist) {
+    const half = Math.floor(playlist.length / 2);
+    const left = playlist.slice(0, half);
+    const right = playlist.slice(half);
+    const shuffled = [];
+    while (left.length || right.length) {
+        if (left.length) shuffled.push(left.shift());
+        if (right.length) shuffled.push(right.shift());
+    }
+    return shuffled;
+}
+
+const shuffleMethods = {
+    reverseShuffle,
+    overhandShuffle,
+    riffleShuffle,
+    pileShuffle,
+    hinduShuffle,
+    mongeanShuffle,
+    faroShuffle,
+};
+
+const playlist = JSON.parse(fs.readFileSync(path, 'utf-8'));
+const shuffledPlaylist = shuffleMethods[shuffleMethod](playlist);
+fs.writeFileSync(path, JSON.stringify(shuffledPlaylist, null, 4));
+"
 
       - name: Commit and push changes
         run: |
