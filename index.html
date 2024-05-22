@@ -127,44 +127,35 @@
 
         function playScheduledVideo() {
             var now = new Date();
-            var dayOfWeek = now.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+            var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+            var dayOfWeek = indianTime.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+            var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
+            var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / 288));
 
             // Define different orders of slots for each day of the week
             var orders = [
-                // Sunday
-                [...Array(36).keys()].map(i => 288 - 10 * i % 288),
-                // Monday
-                [...Array(288).keys()].map(i => (i * 10) % 288 + 1),
-                // Tuesday
-                [...Array(288).keys()].map(i => (i * 6) % 288 + 1),
-                // Wednesday
-                [...Array(288).keys()].reverse().map(i => 288 - i),
-                // Thursday
-                [...Array(288).keys()].map(i => i + 1),
-                // Friday
-                [...Array(36).keys()].map(i => 288 - 10 * i % 288),
-                // Saturday
-                [...Array(288).keys()].map(i => (i * 6) % 288 + 1)
+                Array.from({ length: 288 }, (_, i) => (288 - i - 1) % 288), // Sunday
+                Array.from({ length: 288 }, (_, i) => (i * 10) % 288),      // Monday
+                Array.from({ length: 288 }, (_, i) => (i * 6) % 288),       // Tuesday
+                Array.from({ length: 288 }, (_, i) => 288 - i),             // Wednesday
+                Array.from({ length: 288 }, (_, i) => i + 1),               // Thursday
+                Array.from({ length: 288 }, (_, i) => (288 - i - 1) % 288), // Friday (same as Sunday)
+                Array.from({ length: 288 }, (_, i) => (i * 6) % 288)        // Saturday (same as Tuesday)
             ];
 
             var currentOrder = orders[dayOfWeek];
-            var currentSlotIndex = calculateSlotIndex(now, currentOrder.length);
-            var currentVideoIndex = currentOrder[currentSlotIndex % currentOrder.length] - 1; // Adjust index
+            var currentVideoIndex = currentOrder[currentSlotIndex % currentOrder.length];
 
+            console.log(`Playing video ${currentVideoIndex} for slot ${currentSlotIndex} on day ${dayOfWeek}`);
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
 
             videoPlayer.addEventListener("ended", function () {
-                currentSlotIndex = (currentSlotIndex + 1) % currentOrder.length;
-                currentVideoIndex = currentOrder[currentSlotIndex] - 1; // Adjust index
+                currentSlotIndex = (currentSlotIndex + 1) % 288;
+                currentVideoIndex = currentOrder[currentSlotIndex % currentOrder.length];
                 videoPlayer.src = videoUrls[currentVideoIndex];
                 videoPlayer.play().catch(error => console.error('Error playing video:', error));
             });
-        }
-
-        function calculateSlotIndex(now, orderLength) {
-            var minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
-            return Math.floor(minutesSinceMidnight / (24 * 60 / orderLength));
         }
 
         playPauseBtn.addEventListener("click", togglePlayPause);
