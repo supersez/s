@@ -104,103 +104,44 @@
 
     <script>
         var videoPlayer = document.getElementById("videoPlayer");
-var playPauseBtn = document.getElementById("playPauseBtn");
-var fullScreenBtn = document.getElementById("fullScreenBtn");
-var reloadBtn = document.getElementById("reloadBtn");
-var videoContainer = document.getElementById("videoContainer");
-var overlay = document.getElementById("overlay");
-var centerMessage = document.getElementById("centerMessage");
-var reloadClickCount = 0;
-var controlsTimeout;
+        var playPauseBtn = document.getElementById("playPauseBtn");
+        var fullScreenBtn = document.getElementById("fullScreenBtn");
+        var reloadBtn = document.getElementById("reloadBtn");
+        var videoContainer = document.getElementById("videoContainer");
+        var overlay = document.getElementById("overlay");
+        var centerMessage = document.getElementById("centerMessage");
+        var reloadClickCount = 0;
+        var controlsTimeout;
 
-// Load the video URLs from the playlist.json file
-var playlistUrl = "playlist.json";
-var videoUrls = [];
+        // Load the video URLs from the playlist.json file
+        var playlistUrl = "playlist.json";
+        var videoUrls = [];
 
-fetch(playlistUrl)
-    .then(response => response.json())
-    .then(data => {
-        videoUrls = data;
-        playScheduledVideo();
-    })
-    .catch(error => console.error('Error loading playlist:', error));
+        fetch(playlistUrl)
+            .then(response => response.json())
+            .then(data => {
+                videoUrls = data;
+                playScheduledVideo();
+            })
+            .catch(error => console.error('Error loading playlist:', error));
 
-function playScheduledVideo() {
-    var now = new Date();
-    var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-    var dayOfWeek = indianTime.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+        function playScheduledVideo() {
+            var now = new Date();
+            var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+            var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
+            var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / 288));
+            var currentVideoIndex = currentSlotIndex % videoUrls.length;
 
-    // Define shuffle methods for each day
-    var shuffleMethods = {
-        0: reverseShuffle,
-        1: overhandShuffle,
-        2: riffleShuffle,
-        3: pileShuffle,
-        4: hinduShuffle,
-        5: mongeanShuffle,
-        6: faroShuffle
-    };
-
-    // Get the shuffle method for the current day of the week
-    var shuffleMethod = shuffleMethods[dayOfWeek];
-
-    // Shuffle the schedule using the selected method
-    var shuffledSchedule = shuffleMethod();
-
-    // Play videos based on the shuffled schedule
-    var currentSlotIndex = 0;
-    var numSlots = shuffledSchedule.length;
-
-    var playNextVideo = function () {
-        if (currentSlotIndex < numSlots) {
-            var videoIndex = shuffledSchedule[currentSlotIndex];
-            videoPlayer.src = videoUrls[videoIndex];
+            videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play().catch(error => console.error('Error playing video:', error));
 
             videoPlayer.addEventListener("ended", function () {
-                currentSlotIndex++;
-                playNextVideo();
+                currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
+                videoPlayer.src = videoUrls[currentVideoIndex];
+                videoPlayer.play().catch(error => console.error('Error playing video:', error));
             });
         }
-    };
 
-    playNextVideo();
-}
-
-function reverseShuffle() {
-    // Create a reversed schedule (from 287 to 0)
-    return Array.from({ length: 288 }, (_, i) => 287 - i);
-}
-
-function overhandShuffle() {
-    // Create a shuffled schedule using the overhand shuffle method
-    // Implement your overhand shuffle logic here
-}
-
-function riffleShuffle() {
-    // Create a shuffled schedule using the riffle shuffle method
-    // Implement your riffle shuffle logic here
-}
-
-function pileShuffle() {
-    // Create a shuffled schedule using the pile shuffle method
-    // Implement your pile shuffle logic here
-}
-
-function hinduShuffle() {
-    // Create a shuffled schedule using the hindu shuffle method
-    // Implement your hindu shuffle logic here
-}
-
-function mongeanShuffle() {
-    // Create a shuffled schedule using the mongean shuffle method
-    // Implement your mongean shuffle logic here
-}
-
-function faroShuffle() {
-    // Create a shuffled schedule using the faro shuffle method
-    // Implement your faro shuffle logic here
-}
         playPauseBtn.addEventListener("click", togglePlayPause);
         fullScreenBtn.addEventListener("click", toggleFullscreen);
         reloadBtn.addEventListener("click", handleReload);
