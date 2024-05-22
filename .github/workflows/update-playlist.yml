@@ -1,0 +1,43 @@
+name: Update Playlist
+
+on:
+  schedule:
+    - cron: '30 18 * * *'  # Runs at 12:00 AM IST (06:30 PM UTC) every day
+  push:
+    branches:
+      - main  # or the branch you want to trigger the workflow on push
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  update-playlist:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Select shuffle method based on day of the week
+      id: select_shuffle
+      run: |
+        day_of_week=$(date +'%u')  # Get the day of the week (1 to 7, Monday to Sunday)
+        case $day_of_week in
+          1) echo "shuffle_method=reverse_shuffle" >> $GITHUB_ENV;;  # Monday
+          2) echo "shuffle_method=overhand_shuffle" >> $GITHUB_ENV;;  # Tuesday
+          3) echo "shuffle_method=riffle_shuffle" >> $GITHUB_ENV;;  # Wednesday
+          4) echo "shuffle_method=pile_shuffle" >> $GITHUB_ENV;;  # Thursday
+          5) echo "shuffle_method=hindu_shuffle" >> $GITHUB_ENV;;  # Friday
+          6) echo "shuffle_method=mongean_shuffle" >> $GITHUB_ENV;;  # Saturday
+          7) echo "shuffle_method=faro_shuffle" >> $GITHUB_ENV;;  # Sunday
+        esac
+
+    - name: Shuffle playlist
+      run: |
+        python3 shuffle_playlist.py
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add playlist.json
+        git commit -m 'Shuffle playlist'
+        git push
