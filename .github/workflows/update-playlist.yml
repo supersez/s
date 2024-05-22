@@ -52,7 +52,7 @@ shuffled_playlist = globals()[shuffle_method](playlist)
 
 with open('playlist.json', 'w') as file:
     json.dump(shuffled_playlist, file, indent=4)
-"
+        "
 
     - name: Commit and push changes
       run: |
