@@ -116,65 +116,48 @@
         var overlay = document.getElementById("overlay");
 
         var playlistUrl = "playlist.json";
-    var videoUrls = [];
-    var currentVideoIndex = 0;
+var videoUrls = [];
+var currentVideoIndex = 0;
 
-    // Load playlist
-    fetch(playlistUrl)
-        .then(response => response.json())
-        .then(data => {
-            videoUrls = data;
-            createSchedule();
-            setInitialVideo();
-            playScheduledVideo();
-        })
-        .catch(error => console.error('Error loading playlist:', error));
+// Load playlist
+fetch(playlistUrl)
+    .then(response => response.json())
+    .then(data => {
+        videoUrls = data;
+        playScheduledVideo();
+    })
+    .catch(error => console.error('Error loading playlist:', error));
 
-    // Create schedule with 288 slots per day
-    function createSchedule() {
-        var totalVideos = videoUrls.length;
-        var videosPerSlot = Math.ceil(totalVideos / 288);
+// Set the initial video to play
+function setInitialVideo() {
+    // For simplicity, always start from the first video
+    currentVideoIndex = 0;
+}
 
-        // Fill 288 slots
-        videoUrls = [];
-        for (var i = 0; i < 288; i++) {
-            for (var j = 0; j < videosPerSlot; j++) {
-                var videoIndex = (i * videosPerSlot + j) % totalVideos;
-                videoUrls.push(videoIndex);
-            }
-        }
-    }
-
-    // Set the initial video to play
-    function setInitialVideo() {
-        // For simplicity, always start from the first video
-        currentVideoIndex = 0;
-    }
-
-    // Play the scheduled video
-    function playScheduledVideo() {
-        // Check if there are video URLs available
-        if (videoUrls.length > 0) {
-            videoPlayer.src = videoUrls[currentVideoIndex];
-            videoPlayer.play();
-            console.log('Current video index:', currentVideoIndex);
-            console.log('Current video URL:', videoUrls[currentVideoIndex]);
-        } else {
-            console.error('No video URLs available.');
-        }
-    }
-
-    // Play the next video when the current one ends
-    videoPlayer.addEventListener("ended", function () {
-        currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
+// Play the scheduled video
+function playScheduledVideo() {
+    // Check if there are video URLs available
+    if (videoUrls.length > 0) {
         videoPlayer.src = videoUrls[currentVideoIndex];
         videoPlayer.play();
-    });
+        console.log('Current video index:', currentVideoIndex);
+        console.log('Current video URL:', videoUrls[currentVideoIndex]);
+    } else {
+        console.error('No video URLs available.');
+    }
+}
 
-    // Error handling for video playback
-    videoPlayer.addEventListener('error', function (e) {
-        console.error('Error during video playback:', e);
-    });
+// Play the next video when the current one ends
+videoPlayer.addEventListener("ended", function () {
+    currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
+    videoPlayer.src = videoUrls[currentVideoIndex];
+    videoPlayer.play();
+});
+
+// Error handling for video playback
+videoPlayer.addEventListener('error', function (e) {
+    console.error('Error during video playback:', e);
+});
      
         // Control button functions...
         function togglePlayPause() {
