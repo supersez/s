@@ -134,39 +134,48 @@
         // Create schedule for each day of the week
         function createSchedule() {
             var totalVideos = videoUrls.length;
+            var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
+
             var now = new Date();
             var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
             var dayOfWeek = indianTime.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
             const scheduleStrategies = {
-                0: () => videoUrls.reverse(),
-                1: () => videoUrls.sort(),
-                2: () => {
+                0: (videos) => videos.reverse(),
+                1: (videos) => videos.sort(),
+                2: (videos) => {
                     const half = Math.floor(totalVideos / 2);
-                    return [...videoUrls.slice(0, half), ...videoUrls.slice(half).reverse()];
+                    return [...videos.slice(0, half), ...videos.slice(half).reverse()];
                 },
-                3: () => {
-                    const sorted = videoUrls.filter((_, i) => i % 2 === 0).sort();
-                    const reversed = videoUrls.filter((_, i) => i % 2 !== 0).reverse();
+                3: (videos) => {
+                    const sorted = videos.filter((_, i) => i % 2 === 0).sort();
+                    const reversed = videos.filter((_, i) => i % 2 !== 0).reverse();
                     return [...sorted, ...reversed];
                 },
-                4: () => {
-                    const newOrder = videoUrls.map((_, i) => (i - 1 + 3) % totalVideos);
-                    return newOrder.map(index => videoUrls[index]);
+                4: (videos) => {
+                    const newOrder = videos.map((_, i) => (i - 1 + 3) % totalVideos);
+                    return newOrder.map(index => videos[index]);
                 },
-                5: () => {
+                5: (videos) => {
                     const quarter = Math.floor(totalVideos / 4);
-                    const parts = [videoUrls.slice(0, quarter), videoUrls.slice(quarter, 2 * quarter), videoUrls.slice(2 * quarter, 3 * quarter), videoUrls.slice(3 * quarter)];
+                    const parts = [videos.slice(0, quarter), videos.slice(quarter, 2 * quarter), videos.slice(2 * quarter, 3 * quarter), videos.slice(3 * quarter)];
                     return [...parts[0].sort(), ...parts[1].reverse(), ...parts[2].sort(), ...parts[3].reverse()];
                 },
-                6: () => {
-                    const sorted = videoUrls.filter((_, i) => i % 2 === 0).sort();
-                    const reversed = videoUrls.filter((_, i) => i % 2 !== 0).reverse();
+                6: (videos) => {
+                    const sorted = videos.filter((_, i) => i % 2 === 0).sort();
+                    const reversed = videos.filter((_, i) => i % 2 !== 0).reverse();
                     return [...sorted, ...reversed];
                 }
             };
 
-            videoUrls = scheduleStrategies[dayOfWeek]() || videoUrls;
+            const scheduledVideos = scheduleStrategies[dayOfWeek](videoUrls) || videoUrls;
+
+            // Fill 288 slots
+            videoUrls = [];
+            while (videoUrls.length < slotsPerDay) {
+                videoUrls.push(...scheduledVideos);
+            }
+            videoUrls = videoUrls.slice(0, slotsPerDay);
         }
 
         // Set the initial video to play based on the current day of the week and time slot
@@ -198,7 +207,7 @@
             videoPlayer.play();
         });
 
-        // Error handling for video playback
+// Error handling for video playback
         videoPlayer.addEventListener('error', function (e) {
             console.error('Error during video playback:', e);
         });
@@ -268,3 +277,4 @@ function showControls() {
     </script>
 </body>
 </html>
+
