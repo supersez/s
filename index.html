@@ -104,7 +104,7 @@
                 </button>
             </div>
         </div>
-        <div class="center-message"></div>
+<div class="center-message"></div>
     </div>
 
     <script>
@@ -158,7 +158,7 @@ videoPlayer.addEventListener("ended", function () {
 videoPlayer.addEventListener('error', function (e) {
     console.error('Error during video playback:', e);
 });
-     
+
         // Control button functions...
         function togglePlayPause() {
             if (videoPlayer.paused || videoPlayer.ended) {
@@ -179,7 +179,8 @@ videoPlayer.addEventListener('error', function (e) {
                 document.exitFullscreen();
             }
         }
-function showControls() {
+
+        function showControls() {
             overlay.style.opacity = 1;
             hideControlsAfterDelay();
         }
@@ -193,28 +194,27 @@ function showControls() {
 
         playPauseBtn.addEventListener("click", togglePlayPause);
         fullScreenBtn.addEventListener("click", toggleFullscreen);
+        var reloadBtn = document.getElementById("reloadBtn");
+var centerMessage = document.querySelector(".center-message");
+var reloadClickCount = 0;
 
-        var centerMessage = document.querySelector(".center-message");
-        var reloadClickCount = 0;
+reloadBtn.addEventListener("click", function() {
+    reloadClickCount++;
+    
+    if (reloadClickCount === 1) {
+        centerMessage.innerText = "If You Refresh this site you catch last five minutes live content again to watch";
+    } else if (reloadClickCount === 2) {
+        centerMessage.innerText = "Adjust your Mobile / Device Lock Screen / Lock Orientations / Rotate Screen / options Enable / Disable you can enjoy the Tv in Full screen View!";
+        reloadClickCount = 0; // Reset the count after showing the second message
+    }
+    
+    centerMessage.style.display = "block";
 
-        reloadBtn.addEventListener("click", function() {
-            reloadClickCount++;
-            
-            if (reloadClickCount === 1) {
-                centerMessage.innerText = "If You Refresh this site you catch last five minutes live content again to watch";
-            } else if (reloadClickCount === 2) {
-                centerMessage.innerText = "Adjust your Mobile / Device Lock Screen / Lock Orientations / Rotate Screen / options Enable / Disable you can enjoy the Tv in Full screen View!";
-                reloadClickCount = 0; // Reset the count after showing the second message
-            }
-            
-            centerMessage.style.display = "block";
-
-            // Hide message after 6 seconds
-            setTimeout(function() {
-                centerMessage.style.display = "none";
-            }, 6000);
-        });
-
+    // Hide message after 6 seconds
+    setTimeout(function() {
+        centerMessage.style.display = "none";
+    }, 6000);
+});
         videoContainer.addEventListener("mousemove", showControls);
         videoContainer.addEventListener("touchstart", showControls);
         videoContainer.addEventListener("click", showControls); // For touch devices
@@ -223,4 +223,3 @@ function showControls() {
     </script>
 </body>
 </html>
-
