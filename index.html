@@ -119,32 +119,24 @@
         var videoUrls = [];
         var currentVideoIndex = 0;
         var controlsTimeout;
+        var shuffleOrders = [];
 
-        // Load playlist
+        // Load playlist and generate shuffle orders for each day
         fetch(playlistUrl)
             .then(response => response.json())
             .then(data => {
                 videoUrls = data;
-                createDailySchedule();
+                generateShuffleOrders();
                 setInitialVideo();
                 playScheduledVideo();
             })
             .catch(error => console.error('Error loading playlist:', error));
 
-        // Create a shuffled schedule for each day
-        function createDailySchedule() {
-            var totalVideos = videoUrls.length;
-            var dailySchedule = [];
-
-            // Generate a shuffled order for the playlist
-            var shuffledPlaylist = shuffleArray(videoUrls);
-
-            // Repeat the shuffled order to cover 288 slots per day
-            for (var i = 0; i < 288; i++) {
-                dailySchedule.push(shuffledPlaylist[i % totalVideos]);
+        // Function to generate shuffle orders for each day of the week
+        function generateShuffleOrders() {
+            for (var i = 0; i < 7; i++) {
+                shuffleOrders.push(shuffleArray(videoUrls.slice())); // Create a copy of the playlist to shuffle
             }
-
-            videoUrls = dailySchedule;
         }
 
         // Function to shuffle an array
@@ -171,14 +163,15 @@
         function setInitialVideo() {
             var now = new Date();
             var indianTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+            var dayOfWeek = indianTime.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
             var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
             var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
 
             // Calculate the current slot index
             var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / slotsPerDay));
 
-            // Calculate the initial video index based on the current slot index
-            currentVideoIndex = currentSlotIndex % videoUrls.length;
+            // Calculate the initial video index based on the current day's shuffle order and the current slot index
+            currentVideoIndex = shuffleOrders[dayOfWeek][currentSlotIndex % videoUrls.length];
         }
 
         // Play the scheduled video
