@@ -134,16 +134,6 @@
         // Create schedule for each day of the week
         function createSchedule() {
             var totalVideos = videoUrls.length;
-            var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
-            var schedule = [];
-
-            // Create a schedule with repeating indices to cover 288 slots per day
-            for (var i = 0; i < slotsPerDay; i++) {
-                var index = i % totalVideos;
-                schedule.push(index);
-            }
-
-            // Assign different orders for each day of the week
             var now = new Date();
             var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
             var dayOfWeek = indianTime.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
@@ -169,13 +159,14 @@
                     const parts = [videoUrls.slice(0, quarter), videoUrls.slice(quarter, 2 * quarter), videoUrls.slice(2 * quarter, 3 * quarter), videoUrls.slice(3 * quarter)];
                     return [...parts[0].sort(), ...parts[1].reverse(), ...parts[2].sort(), ...parts[3].reverse()];
                 },
-                6: () => scheduleStrategies[3]()
+                6: () => {
+                    const sorted = videoUrls.filter((_, i) => i % 2 === 0).sort();
+                    const reversed = videoUrls.filter((_, i) => i % 2 !== 0).reverse();
+                    return [...sorted, ...reversed];
+                }
             };
 
             videoUrls = scheduleStrategies[dayOfWeek]() || videoUrls;
-
-            // Update the playlist schedule
-            videoUrls = schedule.map(index => videoUrls[index]);
         }
 
         // Set the initial video to play based on the current day of the week and time slot
@@ -212,6 +203,7 @@
             console.error('Error during video playback:', e);
         });
 
+        
         // Control button functions...
         function togglePlayPause() {
             if (videoPlayer.paused || videoPlayer.ended) {
@@ -276,4 +268,3 @@ function showControls() {
     </script>
 </body>
 </html>
-
