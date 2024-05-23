@@ -108,8 +108,14 @@
     </div>
 
     <script>
-    var videoPlayer = document.getElementById("videoPlayer");
-    var playlistUrl = "playlist.json";
+        var videoPlayer = document.getElementById("videoPlayer");
+        var playPauseBtn = document.getElementById("playPauseBtn");
+        var fullScreenBtn = document.getElementById("fullScreenBtn");
+        var reloadBtn = document.getElementById("reloadBtn");
+        var videoContainer = document.getElementById("videoContainer");
+        var overlay = document.getElementById("overlay");
+
+        var playlistUrl = "playlist.json";
     var videoUrls = [];
     var currentVideoIndex = 0;
 
@@ -118,29 +124,21 @@
         .then(response => response.json())
         .then(data => {
             videoUrls = data;
-            createSchedule();
             setInitialVideo();
             playScheduledVideo();
         })
         .catch(error => console.error('Error loading playlist:', error));
 
-    // Create schedule with 288 slots for each day
-    function createSchedule() {
-        var totalVideos = videoUrls.length;
+    // Set the initial video to play based on the current time
+    function setInitialVideo() {
+        var now = new Date();
+        var hours = now.getHours();
+        var minutes = now.getMinutes();
+        var totalMinutes = hours * 60 + minutes;
         var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
 
-        // Fill 288 slots
-        videoUrls = [];
-        for (var i = 0; i < slotsPerDay; i++) {
-            var videoIndex = i % totalVideos;
-            videoUrls.push(videoIndex);
-        }
-    }
-
-    // Set the initial video to play
-    function setInitialVideo() {
-        // For simplicity, always start from the first video
-        currentVideoIndex = 0;
+        // Calculate the current slot index
+        currentVideoIndex = Math.floor(totalMinutes / (24 * 60 / slotsPerDay));
     }
 
     // Play the scheduled video
@@ -162,7 +160,7 @@
     videoPlayer.addEventListener('error', function (e) {
         console.error('Error during video playback:', e);
     });
-       
+     
         // Control button functions...
         function togglePlayPause() {
             if (videoPlayer.paused || videoPlayer.ended) {
