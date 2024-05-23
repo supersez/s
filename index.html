@@ -104,14 +104,14 @@
                 </button>
             </div>
         </div>
-<div class="center-message"></div>
+        <div class="center-message"></div>
     </div>
 
     <script>
         var videoPlayer = document.getElementById("videoPlayer");
         var playPauseBtn = document.getElementById("playPauseBtn");
         var fullScreenBtn = document.getElementById("fullScreenBtn");
-        var reloadBtn= document.getElementById("reloadBtn");
+        var reloadBtn = document.getElementById("reloadBtn");
         var videoContainer = document.getElementById("videoContainer");
         var overlay = document.getElementById("overlay");
 
@@ -145,68 +145,34 @@
 
             // Assign different orders for each day of the week
             var now = new Date();
-            var indianTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+            var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
             var dayOfWeek = indianTime.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
-            if (dayOfWeek === 0) { // Sunday
-                schedule.reverse();
-            } else if (dayOfWeek === 1) { // Monday
-                schedule.sort();
-            } else if (dayOfWeek === 2) { // Tuesday
-                // Tuesday order: total videos slice and reverse half reverse sort
-                var sliceIndex = Math.floor(totalVideos / 2);
-                var firstHalf = videoUrls.slice(0, sliceIndex);
-                var secondHalf = videoUrls.slice(sliceIndex).reverse();
-                videoUrls = firstHalf.concat(secondHalf);
-            } else if (dayOfWeek === 3) { // Wednesday
-                // Wednesday order: 1, 3, 5 video sort; 2, 4, 6 video reverse
-                var sorted = [];
-                var reversed = [];
-                for (var i = 0; i < totalVideos; i++) {
-                    if (i % 2 === 0) {
-                        sorted.push(videoUrls[i]);
-                    } else {
-                        reversed.push(videoUrls[i]);
-                    }
-                }
-                videoUrls = sorted.sort().concat(reversed.reverse());
-            } else if (dayOfWeek === 4) { // Thursday
-                // Thursday order: calculate total videos and minus 1 plus 3 to make order
-                var newOrder = [];
-                for (var i = 0; i < totalVideos; i++) {
-                    newOrder.push((i - 1 + 3) % totalVideos);
-                }
-                videoUrls = newOrder.map(index => videoUrls[index]);
-            } else if (dayOfWeek === 5) { // Friday
-                // Friday order: calculate total videos and divide into 4 parts, sort and reverse accordingly
-                var quarter = Math.floor(totalVideos / 4);
-                var sorted = [];
-                var reversed = [];
-                for (var i = 0; i < totalVideos; i++) {
-                    if (i < quarter) {
-                        sorted.push(videoUrls[i]);
-                    } else if (i < quarter * 2) {
-                        reversed.push(videoUrls[i]);
-                    } else if (i < quarter * 3) {
-                        sorted.push(videoUrls[i]);
-                    } else {
-                        reversed.push(videoUrls[i]);
-                    }
-                }
-                videoUrls = sorted.sort().concat(reversed.reverse());
-            } else if (dayOfWeek === 6) { // Saturday
-                // Saturday order: same as Wednesday
-                var sorted = [];
-                var reversed = [];
-                for (var i = 0; i < totalVideos; i++) {
-                    if (i % 2 === 0) {
-                        sorted.push(videoUrls[i]);
-                    } else {
-                        reversed.push(videoUrls[i]);
-                    }
-                }
-                videoUrls = sorted.sort().concat(reversed.reverse());
-            }
+            const scheduleStrategies = {
+                0: () => videoUrls.reverse(),
+                1: () => videoUrls.sort(),
+                2: () => {
+                    const half = Math.floor(totalVideos / 2);
+                    return [...videoUrls.slice(0, half), ...videoUrls.slice(half).reverse()];
+                },
+                3: () => {
+                    const sorted = videoUrls.filter((_, i) => i % 2 === 0).sort();
+                    const reversed = videoUrls.filter((_, i) => i % 2 !== 0).reverse();
+                    return [...sorted, ...reversed];
+                },
+                4: () => {
+                    const newOrder = videoUrls.map((_, i) => (i - 1 + 3) % totalVideos);
+                    return newOrder.map(index => videoUrls[index]);
+                },
+                5: () => {
+                    const quarter = Math.floor(totalVideos / 4);
+                    const parts = [videoUrls.slice(0, quarter), videoUrls.slice(quarter, 2 * quarter), videoUrls.slice(2 * quarter, 3 * quarter), videoUrls.slice(3 * quarter)];
+                    return [...parts[0].sort(), ...parts[1].reverse(), ...parts[2].sort(), ...parts[3].reverse()];
+                },
+                6: () => scheduleStrategies[3]()
+            };
+
+            videoUrls = scheduleStrategies[dayOfWeek]() || videoUrls;
 
             // Update the playlist schedule
             videoUrls = schedule.map(index => videoUrls[index]);
@@ -215,8 +181,8 @@
         // Set the initial video to play based on the current day of the week and time slot
         function setInitialVideo() {
             var now = new Date();
-            var indianTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
-            var minutesSinceMidnight = indianTime.getHours() * 60+ indianTime.getMinutes();
+            var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+            var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
             var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
 
             // Calculate the current slot index
@@ -230,13 +196,20 @@
         function playScheduledVideo() {
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play();
+            console.log('Current video index:', currentVideoIndex);
+            console.log('Current video URL:', videoUrls[currentVideoIndex]);
         }
 
         // Play the next video when the current one ends
-        videoPlayer.addEventListener("ended", function() {
+        videoPlayer.addEventListener("ended", function () {
             currentVideoIndex = (currentVideoIndex + 1) % videoUrls.length;
             videoPlayer.src = videoUrls[currentVideoIndex];
             videoPlayer.play();
+        });
+
+        // Error handling for video playback
+        videoPlayer.addEventListener('error', function (e) {
+            console.error('Error during video playback:', e);
         });
 
         // Control button functions...
@@ -259,8 +232,7 @@
                 document.exitFullscreen();
             }
         }
-
-        function showControls() {
+function showControls() {
             overlay.style.opacity = 1;
             hideControlsAfterDelay();
         }
@@ -274,27 +246,28 @@
 
         playPauseBtn.addEventListener("click", togglePlayPause);
         fullScreenBtn.addEventListener("click", toggleFullscreen);
-        var reloadBtn = document.getElementById("reloadBtn");
-var centerMessage = document.querySelector(".center-message");
-var reloadClickCount = 0;
 
-reloadBtn.addEventListener("click", function() {
-    reloadClickCount++;
-    
-    if (reloadClickCount === 1) {
-        centerMessage.innerText = "If You Refresh this site you catch last five minutes live content again to watch";
-    } else if (reloadClickCount === 2) {
-        centerMessage.innerText = "Adjust your Mobile / Device Lock Screen / Lock Orientations / Rotate Screen / options Enable / Disable you can enjoy the Tv in Full screen View!";
-        reloadClickCount = 0; // Reset the count after showing the second message
-    }
-    
-    centerMessage.style.display = "block";
+        var centerMessage = document.querySelector(".center-message");
+        var reloadClickCount = 0;
 
-    // Hide message after 6 seconds
-    setTimeout(function() {
-        centerMessage.style.display = "none";
-    }, 6000);
-});
+        reloadBtn.addEventListener("click", function() {
+            reloadClickCount++;
+            
+            if (reloadClickCount === 1) {
+                centerMessage.innerText = "If You Refresh this site you catch last five minutes live content again to watch";
+            } else if (reloadClickCount === 2) {
+                centerMessage.innerText = "Adjust your Mobile / Device Lock Screen / Lock Orientations / Rotate Screen / options Enable / Disable you can enjoy the Tv in Full screen View!";
+                reloadClickCount = 0; // Reset the count after showing the second message
+            }
+            
+            centerMessage.style.display = "block";
+
+            // Hide message after 6 seconds
+            setTimeout(function() {
+                centerMessage.style.display = "none";
+            }, 6000);
+        });
+
         videoContainer.addEventListener("mousemove", showControls);
         videoContainer.addEventListener("touchstart", showControls);
         videoContainer.addEventListener("click", showControls); // For touch devices
@@ -303,3 +276,4 @@ reloadBtn.addEventListener("click", function() {
     </script>
 </body>
 </html>
+
