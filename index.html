@@ -1,124 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUPER SEZ</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            user-select: none; /* Prevent text selection */
-        }
-        .video-container {
-            position: relative;
-            max-width: 800px;
-            margin: 20px auto;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        video {
-            width: 100%;
-            height: auto;
-            display: block;
-            transition: opacity 1s ease-in-out;
-            pointer-events: none; /* Prevent interactions */
-        }
-        .overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: opacity 0.3s ease;
-            opacity: 1;
-        }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            width: 200px;
-        }
-        .controls button {
-            background-color: transparent;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 20px;
-            width: 40px;
-            height: 40px;
-            transition: color 0.3s ease;
-        }
-        .controls button:hover {
-            color: #ffa500;
-        }
-        .logo {
-            position: absolute;
-            top: 0;
-            right: 5px;
-            max-height: 80px;
-            pointer-events: none; /* Prevent interactions */
-        }
-        @media (max-width: 600px) {
-            .logo {
-                max-height: 60px;
-            }
-        }
-        .radio-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-        .center-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-    </style>
-</head>
-<body oncontextmenu="return false">
-    <div class="video-container" id="videoContainer">
-        <img src="https://cdn.glitch.global/60ebe726-4503-4a28-8886-2a70a5ce5604/SUPER tv green 2.png?v=1713763416444" alt="Logo" class="logo">
-        <video id="videoPlayer" autoplay controlslist="nodownload">Your browser does not support the video tag.</video>
-        <div class="overlay" id="overlay">
-            <div class="controls">
-                <button id="playPauseBtn">&#9658;</button>
-                <button id="fullScreenBtn">
-                    <img src="https://cdn.glitch.global/788b2b36-4fc3-402d-889c-1f89e619ff8b/zoom-fit-svgrepo-com.svg?v=1714291385987" alt="Full Screen" width="30" height="30">
-                </button>
-                <button id="reloadBtn">
-                    <img src="https://cdn.glitch.global/788b2b36-4fc3-402d-889c-1f89e619ff8b/ReloadW.svg?v=1714271107351" alt="Reload" width="30" height="30">
-                </button>
-            </div>
-        </div>
-        <div class="center-message"></div>
-    </div>
-
-    <script>
+<script>
     var videoPlayer = document.getElementById("videoPlayer");
-    var playPauseBtn = document.getElementById("playPauseBtn");
-    var fullScreenBtn = document.getElementById("fullScreenBtn");
-    var reloadBtn = document.getElementById("reloadBtn");
-    var videoContainer = document.getElementById("videoContainer");
-    var overlay = document.getElementById("overlay");
-
     var playlistUrl = "playlist.json";
     var videoUrls = [];
     var currentVideoIndex = 0;
-    var controlsTimeout;
 
     // Load playlist
     fetch(playlistUrl)
@@ -131,13 +15,10 @@
         })
         .catch(error => console.error('Error loading playlist:', error));
 
-    // Create schedule for each day of the week
+    // Create schedule with 288 slots for each day
     function createSchedule() {
         var totalVideos = videoUrls.length;
         var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
-
-        var now = new Date();
-        var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
 
         // Fill 288 slots
         videoUrls = [];
@@ -147,18 +28,10 @@
         }
     }
 
-    // Set the initial video to play based on the current day of the week and time slot
+    // Set the initial video to play
     function setInitialVideo() {
-        var now = new Date();
-        var indianTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-        var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
-        var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
-
-        // Calculate the current slot index
-        var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / slotsPerDay));
-
-        // Calculate the initial video index based on the current slot index
-        currentVideoIndex = currentSlotIndex % videoUrls.length;
+        // For simplicity, always start from the first video
+        currentVideoIndex = 0;
     }
 
     // Play the scheduled video
@@ -180,69 +53,4 @@
     videoPlayer.addEventListener('error', function (e) {
         console.error('Error during video playback:', e);
     });
-       
-        // Control button functions...
-        function togglePlayPause() {
-            if (videoPlayer.paused || videoPlayer.ended) {
-                videoPlayer.play();
-                playPauseBtn.innerHTML = "&#10074;&#10074;";
-            } else {
-                videoPlayer.pause();
-                playPauseBtn.innerHTML = "&#9658;";
-            }
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                videoContainer.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        }
-function showControls() {
-            overlay.style.opacity = 1;
-            hideControlsAfterDelay();
-        }
-
-        function hideControlsAfterDelay() {
-            clearTimeout(controlsTimeout);
-            controlsTimeout = setTimeout(function () {
-                overlay.style.opacity = 0;
-            }, 10000); // 10 seconds
-        }
-
-        playPauseBtn.addEventListener("click", togglePlayPause);
-        fullScreenBtn.addEventListener("click", toggleFullscreen);
-
-        var centerMessage = document.querySelector(".center-message");
-        var reloadClickCount = 0;
-
-        reloadBtn.addEventListener("click", function() {
-            reloadClickCount++;
-            
-            if (reloadClickCount === 1) {
-                centerMessage.innerText = "If You Refresh this site you catch last five minutes live content again to watch";
-            } else if (reloadClickCount === 2) {
-                centerMessage.innerText = "Adjust your Mobile / Device Lock Screen / Lock Orientations / Rotate Screen / options Enable / Disable you can enjoy the Tv in Full screen View!";
-                reloadClickCount = 0; // Reset the count after showing the second message
-            }
-            
-            centerMessage.style.display = "block";
-
-            // Hide message after 6 seconds
-            setTimeout(function() {
-                centerMessage.style.display = "none";
-            }, 6000);
-        });
-
-        videoContainer.addEventListener("mousemove", showControls);
-        videoContainer.addEventListener("touchstart", showControls);
-        videoContainer.addEventListener("click", showControls); // For touch devices
-
-        hideControlsAfterDelay();
-    </script>
-</body>
-</html>
-
+</script>
