@@ -124,29 +124,44 @@
         .then(response => response.json())
         .then(data => {
             videoUrls = data;
+            createSchedule();
             setInitialVideo();
             playScheduledVideo();
         })
         .catch(error => console.error('Error loading playlist:', error));
 
-    // Set the initial video to play based on the current time
-    function setInitialVideo() {
-        var now = new Date();
-        var hours = now.getHours();
-        var minutes = now.getMinutes();
-        var totalMinutes = hours * 60 + minutes;
-        var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
+    // Create schedule with 288 slots per day
+    function createSchedule() {
+        var totalVideos = videoUrls.length;
+        var videosPerSlot = Math.ceil(totalVideos / 288);
 
-        // Calculate the current slot index
-        currentVideoIndex = Math.floor(totalMinutes / (24 * 60 / slotsPerDay));
+        // Fill 288 slots
+        videoUrls = [];
+        for (var i = 0; i < 288; i++) {
+            for (var j = 0; j < videosPerSlot; j++) {
+                var videoIndex = (i * videosPerSlot + j) % totalVideos;
+                videoUrls.push(videoIndex);
+            }
+        }
+    }
+
+    // Set the initial video to play
+    function setInitialVideo() {
+        // For simplicity, always start from the first video
+        currentVideoIndex = 0;
     }
 
     // Play the scheduled video
     function playScheduledVideo() {
-        videoPlayer.src = videoUrls[currentVideoIndex];
-        videoPlayer.play();
-        console.log('Current video index:', currentVideoIndex);
-        console.log('Current video URL:', videoUrls[currentVideoIndex]);
+        // Check if there are video URLs available
+        if (videoUrls.length > 0) {
+            videoPlayer.src = videoUrls[currentVideoIndex];
+            videoPlayer.play();
+            console.log('Current video index:', currentVideoIndex);
+            console.log('Current video URL:', videoUrls[currentVideoIndex]);
+        } else {
+            console.error('No video URLs available.');
+        }
     }
 
     // Play the next video when the current one ends
