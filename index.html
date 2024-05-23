@@ -111,7 +111,7 @@
         var videoPlayer = document.getElementById("videoPlayer");
         var playPauseBtn = document.getElementById("playPauseBtn");
         var fullScreenBtn = document.getElementById("fullScreenBtn");
-        var reloadBtn = document.getElementById("reloadBtn");
+        var reloadBtn= document.getElementById("reloadBtn");
         var videoContainer = document.getElementById("videoContainer");
         var overlay = document.getElementById("overlay");
 
@@ -119,59 +119,111 @@
         var videoUrls = [];
         var currentVideoIndex = 0;
         var controlsTimeout;
-        var shuffleOrders = [];
 
-        // Load playlist and generate shuffle orders for each day
+        // Load playlist
         fetch(playlistUrl)
             .then(response => response.json())
             .then(data => {
                 videoUrls = data;
-                generateShuffleOrders();
+                createSchedule();
                 setInitialVideo();
                 playScheduledVideo();
             })
             .catch(error => console.error('Error loading playlist:', error));
 
-        // Function to generate shuffle orders for each day of the week
-        function generateShuffleOrders() {
-            for (var i = 0; i < 7; i++) {
-                shuffleOrders.push(shuffleArray(videoUrls.slice())); // Create a copy of the playlist to shuffle
-            }
-        }
+        // Create schedule for each day of the week
+        function createSchedule() {
+            var totalVideos = videoUrls.length;
+            var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
+            var schedule = [];
 
-        // Function to shuffle an array
-        function shuffleArray(array) {
-            var currentIndex = array.length, temporaryValue, randomIndex;
-
-            // While there remain elements to shuffle...
-            while (currentIndex !== 0) {
-
-                // Pick a remaining element...
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex -= 1;
-
-                // And swap it with the current element.
-                temporaryValue = array[currentIndex];
-                array[currentIndex] = array[randomIndex];
-                array[randomIndex] = temporaryValue;
+            // Create a schedule with repeating indices to cover 288 slots per day
+            for (var i = 0; i < slotsPerDay; i++) {
+                var index = i % totalVideos;
+                schedule.push(index);
             }
 
-            return array;
-        }
-
-        // Set the initial video to play based on the current time slot
-        function setInitialVideo() {
+            // Assign different orders for each day of the week
             var now = new Date();
             var indianTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
             var dayOfWeek = indianTime.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-            var minutesSinceMidnight = indianTime.getHours() * 60 + indianTime.getMinutes();
+
+            if (dayOfWeek === 0) { // Sunday
+                schedule.reverse();
+            } else if (dayOfWeek === 1) { // Monday
+                schedule.sort();
+            } else if (dayOfWeek === 2) { // Tuesday
+                // Tuesday order: total videos slice and reverse half reverse sort
+                var sliceIndex = Math.floor(totalVideos / 2);
+                var firstHalf = videoUrls.slice(0, sliceIndex);
+                var secondHalf = videoUrls.slice(sliceIndex).reverse();
+                videoUrls = firstHalf.concat(secondHalf);
+            } else if (dayOfWeek === 3) { // Wednesday
+                // Wednesday order: 1, 3, 5 video sort; 2, 4, 6 video reverse
+                var sorted = [];
+                var reversed = [];
+                for (var i = 0; i < totalVideos; i++) {
+                    if (i % 2 === 0) {
+                        sorted.push(videoUrls[i]);
+                    } else {
+                        reversed.push(videoUrls[i]);
+                    }
+                }
+                videoUrls = sorted.sort().concat(reversed.reverse());
+            } else if (dayOfWeek === 4) { // Thursday
+                // Thursday order: calculate total videos and minus 1 plus 3 to make order
+                var newOrder = [];
+                for (var i = 0; i < totalVideos; i++) {
+                    newOrder.push((i - 1 + 3) % totalVideos);
+                }
+                videoUrls = newOrder.map(index => videoUrls[index]);
+            } else if (dayOfWeek === 5) { // Friday
+                // Friday order: calculate total videos and divide into 4 parts, sort and reverse accordingly
+                var quarter = Math.floor(totalVideos / 4);
+                var sorted = [];
+                var reversed = [];
+                for (var i = 0; i < totalVideos; i++) {
+                    if (i < quarter) {
+                        sorted.push(videoUrls[i]);
+                    } else if (i < quarter * 2) {
+                        reversed.push(videoUrls[i]);
+                    } else if (i < quarter * 3) {
+                        sorted.push(videoUrls[i]);
+                    } else {
+                        reversed.push(videoUrls[i]);
+                    }
+                }
+                videoUrls = sorted.sort().concat(reversed.reverse());
+            } else if (dayOfWeek === 6) { // Saturday
+                // Saturday order: same as Wednesday
+                var sorted = [];
+                var reversed = [];
+                for (var i = 0; i < totalVideos; i++) {
+                    if (i % 2 === 0) {
+                        sorted.push(videoUrls[i]);
+                    } else {
+                        reversed.push(videoUrls[i]);
+                    }
+                }
+                videoUrls = sorted.sort().concat(reversed.reverse());
+            }
+
+            // Update the playlist schedule
+            videoUrls = schedule.map(index => videoUrls[index]);
+        }
+
+        // Set the initial video to play based on the current day of the week and time slot
+        function setInitialVideo() {
+            var now = new Date();
+            var indianTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+            var minutesSinceMidnight = indianTime.getHours() * 60+ indianTime.getMinutes();
             var slotsPerDay = 288; // 24 hours * 60 minutes / 5 minutes per slot
 
             // Calculate the current slot index
             var currentSlotIndex = Math.floor(minutesSinceMidnight / (24 * 60 / slotsPerDay));
 
-            // Calculate the initial video index based on the current day's shuffle order and the current slot index
-            currentVideoIndex = shuffleOrders[dayOfWeek][currentSlotIndex % videoUrls.length];
+            // Calculate the initial video index based on the current slot index
+            currentVideoIndex = currentSlotIndex % videoUrls.length;
         }
 
         // Play the scheduled video
